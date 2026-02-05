@@ -23,6 +23,7 @@ class PHOSAnalyzer:
             self.run_list = []
         # PHOS256 consists of 16x16 channels in x and z directions
         self.module = module[1]
+        self.sru    = module[-1]
         self.z_range = range(30,46,1) # we use DTC ports 2-9 in SRU, which corresponds for the upper part of a module
         self.x_range = {"0": range(0,16,1), "1": range(16,32,1), "2": range(32,48,1), "3": range(48,64,1)}.get(module[-1])
         self.channels = [f"x{ix}_z{iz}" for ix, iz in product(self.x_range, self.z_range)]
@@ -49,6 +50,7 @@ class PHOSAnalyzer:
         # else:
 
         self.module = module[1]
+        self.sru = module[-1]
         self.z_range = range(30,46,1) # we use DTC ports 2-9 in SRU, which corresponds for the upper part of a module
         self.x_range = {"0": range(0,16,1), "1": range(16,32,1), "2": range(32,48,1), "3": range(48,64,1)}.get(module[-1])
         self.channels = [f"x{ix}_z{iz}" for ix, iz in product(self.x_range, self.z_range)]
@@ -81,7 +83,9 @@ class PHOSAnalyzer:
     
     def get_df_rms(self):
         return self.df_rms
-
+    
+    def get_module(self):
+        return self.module
     
     def load_pedestals(self, ped_file_name):
 
@@ -200,6 +204,21 @@ class PHOSAnalyzer:
         csp = {(ix, iz): csp_arr[row][ix - self.x_range[0]] for ix, iz in product(self.x_range, self.z_range)}.get((x, z))
 
         return fec, csp
+
+    # CSP id for APD settings
+    def get_csp_id(self, csp):
+        if(csp < 0 or 31 < csp):
+            return -1
+        else:
+            hvid = -1
+            if (csp < 16):
+                hvid = 104 + csp
+            elif (csp < 24):
+                hvid = 104 - csp + 15
+            elif (csp < 32):
+                hvid = 127 - csp + 24
+            return hvid
+
 
 #=============== General functions ====================
 
